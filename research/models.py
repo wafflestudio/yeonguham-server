@@ -8,11 +8,14 @@ from accounts.models import Researchee, Researcher
 # Create your models here.
 class Research(models.Model):
     subject = models.CharField(max_length=20, blank=False, null=True)
-    # auto_now_add null로 넘어가지 않게
     create_date = models.DateTimeField(default=timezone.now)
     update_date = models.DateTimeField(auto_now=True, auto_now_add=False)
     recruit_start = models.DateTimeField(auto_now=False, auto_now_add=False)
     recruit_end = models.DateTimeField(auto_now=False, auto_now_add=False)
+    researchStart = models.DateTimeField(auto_now=False, auto_now_add=False)
+    researchEnd = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True)
+    detail = models.TextField()
+    requirement = models.TextField()
     capacity = models.IntegerField()
     current_number = models.IntegerField(default=0)
     researcher = models.ForeignKey(
@@ -27,6 +30,8 @@ class Research(models.Model):
     researchees = models.ManyToManyField(
         "accounts.Researchee", through="ResearcheeResearch"
     )
+    STATUS_CHOICES = (("EXP", "EXPIRED"), ("RCR", "RECRUITING"), ("PRE", "PREPARING"))
+    status = models.TextField(choices=STATUS_CHOICES)
 
     def __str__(self):
         return self.title
@@ -34,11 +39,11 @@ class Research(models.Model):
     def get_status(self):
         now = datetime.now()
         if now < self.recruit_start:
-            return 0
+            self.status = "PRE"
         elif now < self.recruit_end:
-            return 1
+            self.status = "RCR"
         else:
-            return 2
+            self.status = "EXP"
 
 
 class ResearcheeResearch(models.Model):
