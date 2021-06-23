@@ -31,7 +31,12 @@ class Research(models.Model):
     researchees = models.ManyToManyField(
         "accounts.Researchee", through="ResearcheeResearch"
     )
-    STATUS_CHOICES = (("EXP", "EXPIRED"), ("RCR", "RECRUITING"), ("PRE", "PREPARING"))
+    STATUS_CHOICES = (
+        ("EXP", "EXPIRED"),
+        ("RCR", "RECRUITING"),
+        ("PRE", "PREPARING"),
+        ("FUL", "FULL"),
+    )
     status = models.TextField(choices=STATUS_CHOICES)
 
     def __str__(self):
@@ -41,8 +46,10 @@ class Research(models.Model):
         now = datetime.now()
         if now < self.recruit_start:
             self.status = "PRE"
-        elif now < self.recruit_end:
+        elif now < self.recruit_end and self.current_number < self.capacity:
             self.status = "RCR"
+        elif now < self.recruit_end:
+            self.status = "FUL"
         else:
             self.status = "EXP"
 
@@ -73,6 +80,25 @@ class TagResearch(models.Model):
 
 
 class Tag(models.Model):
+    TAG_CHOICES = [
+        (MEDICAL, "Medical"),
+        (BIO_SCI, "Bio_Sci"),
+        (COMPUTER_EN, "Computer_En"),
+        (ELECTRICAL_EN, "Electrical_En"),
+        (MECHANICAL_EN, "Mechanical_En"),
+        (ARCHI, "Archi"),
+        (ENVIRON_EN, "Environ_En"),
+        (ECONOMICS, "Economics"),
+        (PSYCHOLOGY, "Psychology"),
+        (COMMUN_SCI, "Commun_Sci"),
+        (ANTHROPOLOGY, "Anthropology"),
+        (INDUSTRIAL, "Industrial"),
+        (FOODNUTRI, "FoodNutri"),
+        (LINGUISTICS, "Linguistics"),
+        (CLOTHINGF, "Clothing"),
+        (EDUCATION, "Education"),
+        (ARTPHY, "ArtPhy"),
+    ]
     tag_name = models.CharField(max_length=50)
 
 
