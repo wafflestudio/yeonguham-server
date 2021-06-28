@@ -10,7 +10,6 @@ class ResearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Research
         fields = [
-            "url",
             "id",
             "subject",
             "create_date",
