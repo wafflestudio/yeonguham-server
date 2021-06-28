@@ -39,6 +39,9 @@ class Research(models.Model):
     )
     status = models.TextField(choices=STATUS_CHOICES)
 
+    class Meta:
+        ordering = ["hit"]
+
     def __str__(self):
         return self.title
 
@@ -81,27 +84,42 @@ class TagResearch(models.Model):
 
 class Tag(models.Model):
     TAG_CHOICES = [
-        (MEDICAL, "Medical"),
-        (BIO_SCI, "Bio_Sci"),
-        (COMPUTER_EN, "Computer_En"),
-        (ELECTRICAL_EN, "Electrical_En"),
-        (MECHANICAL_EN, "Mechanical_En"),
-        (ARCHI, "Archi"),
-        (ENVIRON_EN, "Environ_En"),
-        (ECONOMICS, "Economics"),
-        (PSYCHOLOGY, "Psychology"),
-        (COMMUN_SCI, "Commun_Sci"),
-        (ANTHROPOLOGY, "Anthropology"),
-        (INDUSTRIAL, "Industrial"),
-        (FOODNUTRI, "FoodNutri"),
-        (LINGUISTICS, "Linguistics"),
-        (CLOTHINGF, "Clothing"),
-        (EDUCATION, "Education"),
-        (ARTPHY, "ArtPhy"),
+        ("MEDICAL", "Medical"),
+        ("BIO_SCI", "Bio_Sci"),
+        ("COMPUTER_EN", "Computer_En"),
+        ("ELECTRICAL_EN", "Electrical_En"),
+        ("MECHANICAL_EN", "Mechanical_En"),
+        ("ARCHI", "Archi"),
+        ("ENVIRON_EN", "Environ_En"),
+        ("ECONOMICS", "Economics"),
+        ("PSYCHOLOGY", "Psychology"),
+        ("COMMUN_SCI", "Commun_Sci"),
+        ("ANTHROPOLOGY", "Anthropology"),
+        ("INDUSTRIAL", "Industrial"),
+        ("FOODNUTRI", "FoodNutri"),
+        ("LINGUISTICS", "Linguistics"),
+        ("CLOTHINGF", "Clothing"),
+        ("EDUCATION", "Education"),
+        ("ARTPHY", "ArtPhy"),
     ]
     tag_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return "%s" % (self.tag_name)
 
 
 class Mark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     research = models.ForeignKey("Research", on_delete=models.CASCADE)
+
+
+class Ask(models.Model):
+    research = models.ForeignKey(Research, on_delete=models.CASCADE)
+    asker = models.ForeignKey(Researchee, on_delete=models.CASCADE)
+    content = models.TextField()
+    private = models.BooleanField(default=False)
+
+
+class Answer(models.Model):
+    question = models.ForeignKey(Ask, on_delete=models.CASCADE)
+    content = models.TextField()
