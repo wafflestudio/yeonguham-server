@@ -38,6 +38,7 @@ class Research(models.Model):
         ("FUL", "FULL"),
     )
     status = models.TextField(choices=STATUS_CHOICES)
+    location = models.TextField()
 
     class Meta:
         ordering = ["hit"]
