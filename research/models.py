@@ -22,7 +22,7 @@ class Research(models.Model):
     researcher = models.ForeignKey(
         Researcher, on_delete=models.CASCADE, related_name="researches"
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         "Tag", blank=True, related_name="researches", through="TagResearch"
     )
     mark_users = models.ManyToManyField(
@@ -37,11 +37,11 @@ class Research(models.Model):
         ("PRE", "PREPARING"),
         ("FUL", "FULL"),
     )
-    status = models.TextField(choices=STATUS_CHOICES)
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     location = models.TextField()
 
     class Meta:
-        ordering = ["hit"]
+        ordering = ["-hit"]
 
     def __str__(self):
         return self.title
@@ -103,7 +103,7 @@ class Tag(models.Model):
         ("EDUCATION", "Education"),
         ("ARTPHY", "ArtPhy"),
     ]
-    tag_name = models.CharField(max_length=50)
+    tag_name = models.CharField(max_length=14)
 
     def __str__(self):
         return "%s" % (self.tag_name)

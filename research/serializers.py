@@ -1,9 +1,9 @@
 from rest_framework import serializers
+from . import Research, Notice
 
 
-class ResearchSerializer(serializers.ModelSerializer):
-    researcher = serializers.PrimaryKeyRelatedField()
-    tag = serializers.StringRelatedField(many=True)
+class ResearchSerialzier(serializers.ModelSerializer):
+    tags = serializers.StringRelatedField(many=True)
     mark_users = serializers.PrimaryKeyRelatedField(many=True)
     researchees = serializers.PrimaryKeyRelatedField(many=True)
 
@@ -17,15 +17,52 @@ class ResearchSerializer(serializers.ModelSerializer):
             "recruit_start",
             "recruit_end",
             "research_start",
-            "resarch_end",
+            "research_end",
             "detail",
             "requirement",
             "capacity",
             "current_number",
             "hit",
-            "reseacher",
-            "tag",
+            "researcher",
+            "tags",
             "mark_users",
             "researchees",
+        ]
+
+
+class HotResearchSerializer(serializers.ModelSerializer):
+    tags = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Research
+        fields = [
+            "id",
+            "subject",
+            "recruit_end",
+            "capacity",
+            "current_number",
+            "tags",
             "status",
         ]
+
+
+class NewResearchSerializer(serializers.ModelSerializer):
+    tags = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Research
+        fields = [
+            "id",
+            "subject",
+            "recruit_start",
+            "recruit_end",
+            "current_number",
+            "capacity",
+            "tags",
+        ]
+
+
+class NoticeSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = Notice
+        fields = ["id", "research", "title", "body", "image"]
