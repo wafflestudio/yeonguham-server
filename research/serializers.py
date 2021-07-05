@@ -61,10 +61,22 @@ class NewResearchSerializer(serializers.ModelSerializer):
             "tags",
         ]
 
+
 class RecommendResearchSerialzier(serializers.ModelSerializer):
     class Meta:
         model = Research
-        fields = ['id','']
+        fields = [
+            "id",
+            "subject",
+            "recruit_start",
+            "recruit_end",
+            "capacity",
+            "current_number",
+            "hit",
+            "status",
+            "tags",
+        ]
+
 
 class NoticeSerialzier(serializers.ModelSerializer):
     class Meta:

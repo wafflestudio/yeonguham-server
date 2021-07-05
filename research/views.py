@@ -12,7 +12,9 @@ from . import (
     ResearchSerializer,
     HotResearchSerializer,
     NewResearchSerializer,
+    RecommendResearchSerializer,
     NoticeSerializer,
+    AskSerializer,
 )
 from rest_framework.views import APIView, status
 from rest_framework.response import Response
@@ -99,7 +101,7 @@ class NoticeDetail(APIView):
 
     def get(self, request, rid, nid):
         notice = self.get_object(nid)
-        serializer = NoticeSerializer
+        serializer = NoticeSerializer(notice)
         return Response(serializer.data)
 
     def delete(self, request, rid, nid):
@@ -111,4 +113,6 @@ class NoticeDetail(APIView):
 class RecommendList(APIView):
     def get(self, request):
         interests = request.user.researchee.interests
-        recommend_list = Research.obejects.filter(tags__in=interests)
+        recommendations = Research.obejects.filter(tags__in=interests)
+        serializer = RecommendResearchSerializer(recommendations, many=True)
+        return Response(serializer.data)
