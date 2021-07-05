@@ -14,7 +14,7 @@ class Research(models.Model):
     recruit_end = models.DateTimeField(auto_now=False, auto_now_add=False)
     research_start = models.DateTimeField(auto_now=False, auto_now_add=False)
     research_end = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True)
-    url = models.URLField(max_length=200, blank = True)
+    link = models.URLField(max_length=200, blank = True)
     detail = models.TextField()
     requirement = models.TextField()
     capacity = models.IntegerField()

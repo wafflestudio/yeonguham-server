@@ -18,6 +18,7 @@ class ResearchSerializer(serializers.ModelSerializer):
             "recruit_end",
             "research_start",
             "research_end",
+            "link",
             "detail",
             "requirement",
             "capacity",
