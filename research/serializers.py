@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from . import Research, Notice
+from .models import Research, Notice, Ask
 
 
-class ResearchSerialzier(serializers.ModelSerializer):
+class ResearchSerializer(serializers.ModelSerializer):
     tags = serializers.StringRelatedField(many=True)
-    mark_users = serializers.PrimaryKeyRelatedField(many=True)
-    researchees = serializers.PrimaryKeyRelatedField(many=True)
+    mark_users = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    researchees = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Research
@@ -61,8 +61,18 @@ class NewResearchSerializer(serializers.ModelSerializer):
             "tags",
         ]
 
+class RecommendResearchSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = Research
+        fields = ['id','']
 
 class NoticeSerialzier(serializers.ModelSerializer):
     class Meta:
         model = Notice
         fields = ["id", "research", "title", "body", "image"]
+
+
+class AskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ask
+        fields = ["id", "research", "asker", "content", "private"]

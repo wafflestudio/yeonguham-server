@@ -14,6 +14,7 @@ class Research(models.Model):
     recruit_end = models.DateTimeField(auto_now=False, auto_now_add=False)
     research_start = models.DateTimeField(auto_now=False, auto_now_add=False)
     research_end = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True)
+    url = models.URLField(max_length=200, blank = True)
     detail = models.TextField()
     requirement = models.TextField()
     capacity = models.IntegerField()
@@ -79,8 +80,8 @@ class Reward(models.Model):
 
 
 class TagResearch(models.Model):
-    researches = models.ForeignKey(Research, on_delete=models.CASCADE)
-    tags = models.ForeignKey("Tag", on_delete=models.CASCADE)
+    research = models.ForeignKey(Research, on_delete=models.CASCADE)
+    tag = models.ForeignKey("Tag", on_delete=models.CASCADE)
 
 
 class Tag(models.Model):
@@ -103,7 +104,7 @@ class Tag(models.Model):
         ("EDUCATION", "Education"),
         ("ARTPHY", "ArtPhy"),
     ]
-    tag_name = models.CharField(max_length=14)
+    tag_name = models.CharField(max_length=14, choices=TAG_CHOICES)
 
     def __str__(self):
         return "%s" % (self.tag_name)

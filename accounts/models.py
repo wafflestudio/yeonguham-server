@@ -13,6 +13,28 @@ class Researchee(models.Model):
     nickname = models.CharField(max_length=20, blank=True)
     birth = models.DateField(auto_now=False, auto_now_add=False)
     profileImage = models.ImageField(max_length=255, blank=True, null=True)
+    TAG_CHOICES = [
+        ("MEDICAL", "Medical"),
+        ("BIO_SCI", "Bio_Sci"),
+        ("COMPUTER_EN", "Computer_En"),
+        ("ELECTRICAL_EN", "Electrical_En"),
+        ("MECHANICAL_EN", "Mechanical_En"),
+        ("ARCHI", "Archi"),
+        ("ENVIRON_EN", "Environ_En"),
+        ("ECONOMICS", "Economics"),
+        ("PSYCHOLOGY", "Psychology"),
+        ("COMMUN_SCI", "Commun_Sci"),
+        ("ANTHROPOLOGY", "Anthropology"),
+        ("INDUSTRIAL", "Industrial"),
+        ("FOODNUTRI", "FoodNutri"),
+        ("LINGUISTICS", "Linguistics"),
+        ("CLOTHINGF", "Clothing"),
+        ("EDUCATION", "Education"),
+        ("ARTPHY", "ArtPhy"),
+    ]
+    interests = ArrayField(
+        models.CharField(max_length=14, choices=TAG_CHOICES), default=list, size=17
+    )
 
     @receiver(post_save, sender=User)
     def create_user_researchee(self, sender, instance, created, **kwargs):
