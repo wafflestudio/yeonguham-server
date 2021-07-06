@@ -113,6 +113,6 @@ class NoticeDetail(APIView):
 class RecommendList(APIView):
     def get(self, request):
         interests = request.user.researchee.interests
-        recommendations = Research.obejects.filter(tags__in=interests)
+        recommendations = Research.obejects.filter(tags__tag_name_in=interests)
         serializer = RecommendResearchSerializer(recommendations, many=True)
         return Response(serializer.data)
