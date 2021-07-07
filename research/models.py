@@ -14,6 +14,7 @@ class Research(models.Model):
     recruit_end = models.DateTimeField(auto_now=False, auto_now_add=False)
     research_start = models.DateTimeField(auto_now=False, auto_now_add=False)
     research_end = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True)
+    link = models.URLField(max_length=200, blank=True)
     detail = models.TextField()
     requirement = models.TextField()
     capacity = models.IntegerField()
@@ -22,7 +23,7 @@ class Research(models.Model):
     researcher = models.ForeignKey(
         Researcher, on_delete=models.CASCADE, related_name="researches"
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         "Tag", blank=True, related_name="researches", through="TagResearch"
     )
     mark_users = models.ManyToManyField(
@@ -31,8 +32,19 @@ class Research(models.Model):
     researchees = models.ManyToManyField(
         "accounts.Researchee", through="ResearcheeResearch"
     )
-    STATUS_CHOICES = (("EXP", "EXPIRED"), ("RCR", "RECRUITING"), ("PRE", "PREPARING"))
-    status = models.TextField(choices=STATUS_CHOICES)
+    STATUS_CHOICES = (
+        ("EXP", "EXPIRED"),
+        ("RCR", "RECRUITING"),
+        ("PRE", "PREPARING"),
+        ("FUL", "FULL"),
+    )
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES)
+    location = models.TextField()
+    reward_type = models.CharField(max_length=50)
+    reward_amount = models.IntegerField()
+
+    class Meta:
+        ordering = ["-hit"]
 
     def __str__(self):
         return self.title
@@ -41,8 +53,10 @@ class Research(models.Model):
         now = datetime.now()
         if now < self.recruit_start:
             self.status = "PRE"
-        elif now < self.recruit_end:
+        elif now < self.recruit_end and self.current_number < self.capacity:
             self.status = "RCR"
+        elif now < self.recruit_end:
+            self.status = "FUL"
         else:
             self.status = "EXP"
 
@@ -53,7 +67,9 @@ class ResearcheeResearch(models.Model):
 
 
 class Notice(models.Model):
-    research = models.ForeignKey(Research, on_delete=models.CASCADE)
+    research = models.ForeignKey(
+        Research, on_delete=models.CASCADE, related_name="notices"
+    )
     title = models.CharField(max_length=256)
     body = models.TextField()
     image = models.ImageField(
@@ -62,20 +78,55 @@ class Notice(models.Model):
 
 
 class Reward(models.Model):
-    research = models.OneToOneField(Research, on_delete=models.CASCADE)
+    research = models.ForeignKey(
+        Research, on_delete=models.CASCADE, related_name="rewards"
+    )
     reward_type = models.CharField(max_length=50)
     amount = models.IntegerField()
 
 
 class TagResearch(models.Model):
-    researches = models.ForeignKey(Research, on_delete=models.CASCADE)
-    tags = models.ForeignKey("Tag", on_delete=models.CASCADE)
+    research = models.ForeignKey(Research, on_delete=models.CASCADE)
+    tag = models.ForeignKey("Tag", on_delete=models.CASCADE)
 
 
 class Tag(models.Model):
-    tag_name = models.CharField(max_length=50)
+    TAG_CHOICES = [
+        ("MEDICAL", "Medical"),
+        ("BIO_SCI", "Bio_Sci"),
+        ("COMPUTER_EN", "Computer_En"),
+        ("ELECTRICAL_EN", "Electrical_En"),
+        ("MECHANICAL_EN", "Mechanical_En"),
+        ("ARCHI", "Archi"),
+        ("ENVIRON_EN", "Environ_En"),
+        ("ECONOMICS", "Economics"),
+        ("PSYCHOLOGY", "Psychology"),
+        ("COMMUN_SCI", "Commun_Sci"),
+        ("ANTHROPOLOGY", "Anthropology"),
+        ("INDUSTRIAL", "Industrial"),
+        ("FOODNUTRI", "FoodNutri"),
+        ("LINGUISTICS", "Linguistics"),
+        ("CLOTHINGF", "Clothing"),
+        ("EDUCATION", "Education"),
+        ("ARTPHY", "ArtPhy"),
+    ]
+    tag_name = models.CharField(max_length=14, choices=TAG_CHOICES)
 
 
 class Mark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    research = models.ForeignKey("Research", on_delete=models.CASCADE)
+    research = models.ForeignKey(Research, on_delete=models.CASCADE)
+
+
+class Ask(models.Model):
+    research = models.ForeignKey(
+        Research, on_delete=models.CASCADE, related_name="asks"
+    )
+    asker = models.ForeignKey(Researchee, on_delete=models.CASCADE, related_name="asks")
+    content = models.TextField()
+    private = models.BooleanField(default=False)
+
+
+class Answer(models.Model):
+    ask = models.ForeignKey(Ask, on_delete=models.CASCADE, related_name="answers")
+    content = models.TextField()
