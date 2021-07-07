@@ -6,21 +6,29 @@ from . import (
     TagResearch,
     Notice,
     Mark,
+    Ask,
     Answer,
 )
 from . import (
+    TagSerializer,
     ResearchSerializer,
     HotResearchSerializer,
     NewResearchSerializer,
     RecommendResearchSerializer,
     NoticeSerializer,
+    NoticeSimpleSerializer,
+    NoticeDetailSerializer,
     AskSerializer,
+    AskSimpleSerializer,
+    AskDetailSerializer,
+    AnswerSerializer,
 )
 from rest_framework.views import APIView, status
 from rest_framework.response import Response
 from django.http import Http404
 
 # Create your views here.
+# https://docs.djangoproject.com/en/3.2/ref/models/querysets/#filter
 
 
 class ReserachList(APIView):
@@ -81,7 +89,7 @@ class ResearchDetail(APIView):
 class NoticeList(APIView):
     def get(self, request, rid):
         notices = Notice.objects.filter(research__id=rid)
-        serializer = NoticeSerializer(notices, many=True)
+        serializer = NoticeSimpleSerializer(notices, many=True)
         return Response(serializer.data)
 
     def post(self, request, rid):
@@ -101,7 +109,7 @@ class NoticeDetail(APIView):
 
     def get(self, request, rid, nid):
         notice = self.get_object(nid)
-        serializer = NoticeSerializer(notice)
+        serializer = NoticeDetailSerializer(notice)
         return Response(serializer.data)
 
     def delete(self, request, rid, nid):
@@ -116,3 +124,35 @@ class RecommendList(APIView):
         recommendations = Research.obejects.filter(tags__tag_name_in=interests)
         serializer = RecommendResearchSerializer(recommendations, many=True)
         return Response(serializer.data)
+
+
+class AskList(APIView):
+    def get(self, request, rid):
+        asks = Ask.objects.filter(research__id=rid)
+        serializer = AskSimpleSerializer(asks, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, rid):
+        serializer = AskSerializer(request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AskDetail(APIView):
+    def get_object(self, aid):
+        try:
+            return Ask.objects.get(pk=aid)
+        except Research.DoesNotExist:
+            raise Http404
+
+    def get(self, request, rid, aid):
+        ask = self.get_object(aid)
+        serializer = AskDetailSerializer(ask)
+        return Response(serializer.data)
+
+    def delete(self, request, rid, aid):
+        ask = Ask.objects.get(pk=aid)
+        ask.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

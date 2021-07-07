@@ -5,8 +5,10 @@ from . import views
 urlpatterns = [
     path('researches/', views.ResearchList.as_view()),
     path('researches/<int:rid>/', views.ResearchDetail.as_view()),
-    path('researches/<int:rid>/notice',views.NoticeList.as_view()),
-    path('researches/<int:rid>/notice/<int:nid>',views.NoticeDetail.as_view()),
+    path('researches/<int:rid>/notice/',views.NoticeList.as_view()),
+    path('researches/<int:rid>/notice/<int:nid>/',views.NoticeDetail.as_view()),
+    path('researches/<int:rid>/ask/',views.AskList.as_view()),
+    path('researches/<int:rid>/ask/<int:aid>/',views.AskDetail.as_view()),
     path('recommendations/',views.RecommendList.as_view()),
 ]
 
