@@ -6,9 +6,10 @@ from django.dispatch import receiver
 
 # Create your models here.
 
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profileImage = models.ImageField(max_length=None, blank = True, null = True)
+    profileImage = models.ImageField(max_length=None, blank=True, null=True)
     lab = models.CharField(max_length=50, blank=True)
     TAG_CHOICES = [
         ("MEDICAL", "Medical"),
