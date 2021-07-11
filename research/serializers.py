@@ -1,19 +1,22 @@
 from rest_framework import serializers
-from .models import Research, Tag, Notice, Ask, Answer
+from .models import Research, Tag, Notice, Ask, Answer, Reward
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ["tag_name"]
+        fields = ["id", "tag_name"]
 
 
-class ResearchSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
-    mark_users = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    researchees = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    rewards = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+class RewardSerializer(serializers.ModelSerializer):
+    research = serializers.PrimaryKeyRelatedField(read_only=True)
 
+    class Meta:
+        model = Reward
+        fields = ["id", "reward_type", "amount"]
+
+
+class SimpleResearchCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Research
         fields = [
@@ -29,14 +32,73 @@ class ResearchSerializer(serializers.ModelSerializer):
             "detail",
             "requirement",
             "capacity",
+            "images",
+            "location",
+        ]
+
+    def create(self, research):
+        researcher = self.context["request"].user.profile
+        return Research.objects.create(**research, reseacher=researcher)
+
+
+class ResearchCreateSerializer(SimpleResearchCreateSerializer):
+    reward = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
+    researcher = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Research
+        fields = SimpleResearchCreateSerializer.Meta.fields + ("reward", "tags")
+
+    def get_reward(self, research):
+        reward = research.reward
+        return RewardSerializer(reward, context=self.context).data
+
+    def get_tags(self, research):
+        tags = research.tags
+        return TagSerializer(tags, context=self.context, many=True).data
+
+    # def get_researcher(self,research):
+    #     return UserSerializer()
+
+
+class ResearchViewSerializer(serializers.ModelSerializer):
+    tags = serializers.SerializerMethodField()
+    reward = serializers.SerializerMethodField()
+    researcher = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Research
+        fields = [
+            "id",
+            "subject",
+            "create_date",
+            "update_date",
+            "recruit_start",
+            "recruit_end",
+            "research_start",
+            "research_end",
+            "reward",
+            "link",
+            "detail",
+            "requirement",
+            "capacity",
             "current_number",
-            "hit",
             "researcher",
             "tags",
-            "mark_users",
-            "researchees",
-            "rewards",
+            "hit",
+            "location",
+            "images",
         ]
+
+    def get_tags(self, research):
+        return TagSerializer(research.tags.all(), many=True)
+
+    def get_researcher(self, research):
+        return
+
+    def get_reward(self, research):
+        return RewardSerializer(research.reward)
 
 
 class HotResearchSerializer(serializers.ModelSerializer):
@@ -50,7 +112,7 @@ class HotResearchSerializer(serializers.ModelSerializer):
             "recruit_end",
             "capacity",
             "current_number",
-            "tags",
+            "images" "tags",
             "status",
         ]
 
@@ -89,6 +151,22 @@ class RecommendResearchSerialzier(serializers.ModelSerializer):
         ]
 
 
+class SimpleResearchSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Research
+        fields = [
+            "id",
+            "subject",
+            "recruit_start",
+            "recruit_end",
+            "capacity",
+            "current_number",
+            "tags",
+        ]
+
+
 class NoticeSerialzier(serializers.ModelSerializer):
     class Meta:
         model = Notice
@@ -111,6 +189,10 @@ class AskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ask
         fields = ["id", "research", "asker", "content", "private"]
+
+    def create(self, ask):
+        asker = self.context["request"].user.profile
+        return Research.objects.create(**ask, asker=asker)
 
 
 class AskSimpleSerializer(serializers.ModelSerializer):

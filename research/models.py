@@ -3,12 +3,14 @@ from django.contrib.postgres.fields import ArrayField
 from datetime import datetime
 from django.utils import timezone
 from django.contrib.auth.models import User
-from accounts.models import Researchee, Researcher
+from ..accounts.models import Profile
 
 # Create your models here.
+
+
 class Research(models.Model):
     subject = models.CharField(max_length=20, blank=False, null=True)
-    create_date = models.DateTimeField(default=timezone.now)
+    create_date = models.DateTimeField(auto_now=False, auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True, auto_now_add=False)
     recruit_start = models.DateTimeField(auto_now=False, auto_now_add=False)
     recruit_end = models.DateTimeField(auto_now=False, auto_now_add=False)
@@ -21,7 +23,7 @@ class Research(models.Model):
     current_number = models.IntegerField(default=0)
     hit = models.IntegerField(default=0)
     researcher = models.ForeignKey(
-        Researcher, on_delete=models.CASCADE, related_name="researches"
+        Profile, on_delete=models.CASCADE, related_name="researches"
     )
     tags = models.ManyToManyField(
         "Tag", blank=True, related_name="researches", through="TagResearch"
@@ -29,9 +31,7 @@ class Research(models.Model):
     mark_users = models.ManyToManyField(
         User, blank=True, related_name="marked_research", through="Mark"
     )
-    researchees = models.ManyToManyField(
-        "accounts.Researchee", through="ResearcheeResearch"
-    )
+    researchees = models.ManyToManyField("Profile", through="ResearcheeResearch", blank =True)
     STATUS_CHOICES = (
         ("EXP", "EXPIRED"),
         ("RCR", "RECRUITING"),
@@ -40,8 +40,7 @@ class Research(models.Model):
     )
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     location = models.TextField()
-    reward_type = models.CharField(max_length=50)
-    reward_amount = models.IntegerField()
+    images = ArrayField(models.ImageField(), size=4)
 
     class Meta:
         ordering = ["-hit"]
@@ -62,13 +61,13 @@ class Research(models.Model):
 
 
 class ResearcheeResearch(models.Model):
-    researchees = models.ForeignKey(Researchee, on_delete=models.CASCADE)
-    researches = models.ForeignKey(Research, on_delete=models.CASCADE)
+    researchee = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    research = models.ForeignKey(Research, on_delete=models.CASCADE)
 
 
 class Notice(models.Model):
     research = models.ForeignKey(
-        Research, on_delete=models.CASCADE, related_name="notices"
+        Research, on_delete=models.CASCADE, related_name="notices", null = True
     )
     title = models.CharField(max_length=256)
     body = models.TextField()
@@ -78,8 +77,8 @@ class Notice(models.Model):
 
 
 class Reward(models.Model):
-    research = models.ForeignKey(
-        Research, on_delete=models.CASCADE, related_name="rewards"
+    research = models.OneToOneField(
+        Research, on_delete=models.CASCADE, related_name="reward", null = True
     )
     reward_type = models.CharField(max_length=50)
     amount = models.IntegerField()
@@ -120,9 +119,9 @@ class Mark(models.Model):
 
 class Ask(models.Model):
     research = models.ForeignKey(
-        Research, on_delete=models.CASCADE, related_name="asks"
+        Research, on_delete=models.CASCADE, related_name="asks", null= True
     )
-    asker = models.ForeignKey(Researchee, on_delete=models.CASCADE, related_name="asks")
+    asker = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="asks", null = True)
     content = models.TextField()
     private = models.BooleanField(default=False)
 
