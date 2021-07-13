@@ -9,6 +9,8 @@ urlpatterns = [
     path("researches/<int:rid>/notice/<int:nid>/", views.NoticeDetail.as_view()),
     path("researches/<int:rid>/ask/", views.AskList.as_view()),
     path("researches/<int:rid>/ask/<int:aid>/", views.AskDetail.as_view()),
+    path("researches/search/", views.SearchList.as_view()),
+    path("researches/field", views.FieldList.as_view()),
     path("recommendations/", views.RecommendList.as_view()),
 ]
 

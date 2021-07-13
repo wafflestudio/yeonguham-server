@@ -26,12 +26,14 @@ class Research(models.Model):
         Profile, on_delete=models.CASCADE, related_name="researches"
     )
     tags = models.ManyToManyField(
-        "Tag", blank=True, related_name="researches", through="TagResearch"
+        "Tag", null=True, related_name="researches", through="TagResearch"
     )
     mark_users = models.ManyToManyField(
-        User, blank=True, related_name="marked_research", through="Mark"
+        User, null=True, related_name="marked_research", through="Mark"
     )
-    researchees = models.ManyToManyField("Profile", through="ResearcheeResearch", blank =True)
+    researchees = models.ManyToManyField(
+        "Profile", through="ResearcheeResearch", null=True
+    )
     STATUS_CHOICES = (
         ("EXP", "EXPIRED"),
         ("RCR", "RECRUITING"),
@@ -67,7 +69,7 @@ class ResearcheeResearch(models.Model):
 
 class Notice(models.Model):
     research = models.ForeignKey(
-        Research, on_delete=models.CASCADE, related_name="notices", null = True
+        Research, on_delete=models.CASCADE, related_name="notices", null=True
     )
     title = models.CharField(max_length=256)
     body = models.TextField()
@@ -78,7 +80,7 @@ class Notice(models.Model):
 
 class Reward(models.Model):
     research = models.OneToOneField(
-        Research, on_delete=models.CASCADE, related_name="reward", null = True
+        Research, on_delete=models.CASCADE, related_name="reward", null=True
     )
     reward_type = models.CharField(max_length=50)
     amount = models.IntegerField()
@@ -119,9 +121,11 @@ class Mark(models.Model):
 
 class Ask(models.Model):
     research = models.ForeignKey(
-        Research, on_delete=models.CASCADE, related_name="asks", null= True
+        Research, on_delete=models.CASCADE, related_name="asks", null=True
     )
-    asker = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="asks", null = True)
+    asker = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="asks", null=True
+    )
     content = models.TextField()
     private = models.BooleanField(default=False)
 
