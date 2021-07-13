@@ -9,8 +9,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RewardSerializer(serializers.ModelSerializer):
-    research = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Reward
         fields = ["id", "reward_type", "amount"]
@@ -37,9 +35,9 @@ class SimpleResearchCreateSerializer(serializers.ModelSerializer):
             "researcher",
         ]
 
-    def create(self, research):
-        researcher = self.context["request"].user.profile
-        return Research.objects.create(**research, reseacher=researcher)
+    # def create(self, research):
+    #     researcher = self.context["request"].user.profile
+    #     return Research.objects.create(**research, reseacher=researcher)
 
 
 class ResearchCreateSerializer(SimpleResearchCreateSerializer):
@@ -65,7 +63,6 @@ class ResearchCreateSerializer(SimpleResearchCreateSerializer):
 class ResearchViewSerializer(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
     reward = serializers.SerializerMethodField()
-    researcher = serializers.SerializerMethodField()
 
     class Meta:
         model = Research
@@ -94,9 +91,6 @@ class ResearchViewSerializer(serializers.ModelSerializer):
     def get_tags(self, research):
         return TagSerializer(research.tags.all(), many=True)
 
-    def get_researcher(self, research):
-        return
-
     def get_reward(self, research):
         return RewardSerializer(research.reward)
 
@@ -112,7 +106,8 @@ class HotResearchSerializer(serializers.ModelSerializer):
             "recruit_end",
             "capacity",
             "current_number",
-            "images" "tags",
+            "images",
+            "tags",
             "status",
         ]
 
@@ -182,7 +177,7 @@ class NoticeSimpleSerializer(serializers.ModelSerializer):
 class NoticeDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
-        fields = ["title", "body", "image"]
+        fields = ["id", "title", "body", "image"]
 
 
 class AskCreateSerializer(serializers.ModelSerializer):
