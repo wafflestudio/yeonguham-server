@@ -39,9 +39,7 @@ from datetime import datetime
 
 class ReserachList(APIView):
     def get(self, request):
-        researches = Research.objects.all()
-        for research in researches:
-            research.get_status()
+        researches = Research.filter(recruit_start__gt=datetime.now())
         hot_researches = Research.objects.all().excldue(status="EXP")[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
         new_researches = Research.objects.all().order_by("-create_date")[:24]
@@ -208,8 +206,8 @@ class SearchList(APIView):
         if time_range:
             start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
             end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
-            search_result = search_result.filter(start_date__range=(start, end))
-            search_result = search_result.filter(start_date__range=(start, end))
+            search_result = search_result.filter(research_start__range=(start, end))
+            search_result = search_result.filter(research_end__range=(start, end))
         serializer = SimpleResearchSerializer(search_result, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -230,8 +228,8 @@ class FieldList(APIView):
         if time_range:
             start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
             end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
-            filter_result = filter_result.filter(start_date__range=(start, end))
-            filter_result = filter_result.filter(start_date__range=(start, end))
+            filter_result = filter_result.filter(research_start__range=(start, end))
+            filter_result = filter_result.filter(research_end__range=(start, end))
         serializer = SimpleResearchSerializer(filter_result, many=True)
 
 
