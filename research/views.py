@@ -40,9 +40,9 @@ from datetime import datetime
 class ReserachList(APIView):
     def get(self, request):
         researches = Research.filter(recruit_start__gt=datetime.now())
-        hot_researches = Research.objects.all().excldue(status="EXP")[:24]
+        hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
-        new_researches = Research.objects.all().order_by("-create_date")[:24]
+        new_researches = researches.order_by("-create_date")[:24]
         new_serializer = NewResearchSerializer(new_researches, many=True)
         context = {
             "hot_research": hot_serializer.data,
