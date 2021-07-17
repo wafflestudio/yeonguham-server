@@ -1,4 +1,4 @@
-from . import (
+from .models import (
     Research,
     Tag,
     Reward,
@@ -9,36 +9,40 @@ from . import (
     Ask,
     Answer,
 )
-from . import (
+from .serializers import (
     TagSerializer,
-    ResearchSerializer,
+    RewardSerializer,
+    SimpleResearchCreateSerializer,
+    ResearchCreateSerializer,
+    ResearchViewSerializer,
     HotResearchSerializer,
     NewResearchSerializer,
     RecommendResearchSerializer,
-    NoticeSerializer,
+    SimpleResearchSerializer,
+    NoticeCreateSerializer,
     NoticeSimpleSerializer,
     NoticeDetailSerializer,
-    AskSerializer,
+    AskCreateSerializer,
     AskSimpleSerializer,
     AskDetailSerializer,
     AnswerSerializer,
 )
-from rest_framework.views import APIView, status
+from rest_framework.views import APIView, status, viewsets
+from rest_framework import action
 from rest_framework.response import Response
 from django.http import Http404
+from django.db import transaction
+from datetime import datetime
 
-# Create your views here.
 # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#filter
 
 
 class ReserachList(APIView):
     def get(self, request):
-        researches = Research.objects.all()
-        for research in researches:
-            research.get_status()
-        hot_researches = Research.objects.all().excldue(status="EXP")[:24]
+        researches = Research.filter(recruit_start__gt=datetime.now())
+        hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
-        new_researches = Research.objects.all().order_by("-create_date")[:24]
+        new_researches = researches.order_by("-create_date")[:24]
         new_serializer = NewResearchSerializer(new_researches, many=True)
         context = {
             "hot_research": hot_serializer.data,
@@ -47,11 +51,36 @@ class ReserachList(APIView):
         return Response(context)
 
     def post(self, request):
-        serializer = ResearchSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data.copy()
+        reward = data.pop("reward")
+        tags = data.pop("tags")
+        serializer = SimpleResearchCreateSerializer(
+            data=data, context=self.get_serializer_context()
+        )
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            research = serializer.save(researcher=request.user.profile)
+
+            Reward.objects.create(
+                research=research,
+                reward_type=reward.get("reward_type"),
+                amount=reward.get("amount"),
+            )
+        for field_tag in tags:
+            tag_name = field_tag.get("tag_name")
+            try:
+                tag = Tag.objects.get(tag_name=tag_name)
+            except Tag.DoesNotExist:
+                tag_serializer = TagSerializer(data=field_tag)
+                tag_serializer.is_valid(raise_exception=True)
+                tag = tag_serializer.save()
+
+            with transaction.atomic():
+                TagResearch.objects.create(research=research, tag=tag)
+        return Response(
+            ResearchCreateSerializer(research).data, status=status.HTTP_201_CREATED
+        )
 
 
 class ResearchDetail(APIView):
@@ -63,18 +92,24 @@ class ResearchDetail(APIView):
 
     def get(self, request, rid):
         research = self.get_object(rid)
-        serializer = ResearchSerializer(research)
+        serializer = ResearchViewSerializer(research)
         return Response(serializer.data)
 
     def post(self, request, rid):
         research = self.get_object(rid)
         researchee = request.user.researchee
-        ResearcheeResearch.objects.create(research=research, researchee=researchee)
-        return Response(status=status.HTTP_201_CREATED)
+        try:
+            already = ResearcheeResearch.objects(
+                research=research, researchee=researchee
+            )
+        except ResearcheeResearch.DoesNotExist:
+            ResearcheeResearch.objects.create(research=research, researchee=researchee)
+            return Response(status=status.HTTP_201_CREATED)
+        return Response({"error": "이미 참여하고 있는 연구입니다."}, status=status.HTTP_409_CONFLICT)
 
     def put(self, request, rid):
         research = self.get_object(rid)
-        serializer = ResearchSerializer(research, data=request.data)
+        serializer = ResearchViewSerializer(research, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -93,9 +128,12 @@ class NoticeList(APIView):
         return Response(serializer.data)
 
     def post(self, request, rid):
-        serializer = NoticeSerializer(data=request.data)
+        serializer = NoticeCreateSerializer(
+            data=request.data, context=self.get_serializer_context()
+        )
+        research = Research.objects.get(id=rid)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(research=research)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -118,14 +156,6 @@ class NoticeDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class RecommendList(APIView):
-    def get(self, request):
-        interests = request.user.researchee.interests
-        recommendations = Research.obejects.filter(tags__tag_name_in=interests)
-        serializer = RecommendResearchSerializer(recommendations, many=True)
-        return Response(serializer.data)
-
-
 class AskList(APIView):
     def get(self, request, rid):
         asks = Ask.objects.filter(research__id=rid)
@@ -133,9 +163,13 @@ class AskList(APIView):
         return Response(serializer.data)
 
     def post(self, request, rid):
-        serializer = AskSerializer(request.data)
+        serializer = AskCreateSerializer(
+            request.data, context=self.get_serializer_context()
+        )
+        research = Research.objects.get(id=rid)
+        asker = request.user.profile
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(research=research, asker=asker)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -156,3 +190,55 @@ class AskDetail(APIView):
         ask = Ask.objects.get(pk=aid)
         ask.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SearchList(APIView):
+    def get(self, request):
+        keyword = request.query_params.get("query")
+        sort = request.query_params.get("sort")
+        pay = request.query_params.get("pay")
+        time_range = request.query_params.get("time_range")
+        search_result = Research.objects.filter(subject__iexact=keyword)
+        if sort:
+            search_result = search_result.order_by(sort)
+        if pay:
+            search_result = search_result.filter(reward__amount__gte=pay)
+        if time_range:
+            start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
+            end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
+            search_result = search_result.filter(research_start__range=(start, end))
+            search_result = search_result.filter(research_end__range=(start, end))
+        serializer = SimpleResearchSerializer(search_result, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class FieldList(APIView):
+    def get(self, request):
+        tags = request.query_params.get("tags")
+        sort = request.query_params.get("sort")
+        pay = request.query_params.get("pay")
+        time_range = request.query_params.get("time_range")
+
+        filter_result = Research.objects.filter(tags__tag_name__in=tags)
+
+        if sort:
+            filter_result = filter_result.order_by(sort)
+        if pay:
+            filter_result = filter_result.filter(reward__amount__gte=pay)
+        if time_range:
+            start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
+            end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
+            filter_result = filter_result.filter(research_start__range=(start, end))
+            filter_result = filter_result.filter(research_end__range=(start, end))
+        serializer = SimpleResearchSerializer(filter_result, many=True)
+
+
+class RecommendList(APIView):
+    def get(self, request):
+        interests = request.user.researchee.interests
+        sort = request.query_params.get("sort")
+        recommendations = Research.obejects.filter(
+            tags__tag_name__in=interests
+        ).order_by(sort)
+        serializer = RecommendResearchSerializer(recommendations, many=True)
+        return Response(serializer.data)
