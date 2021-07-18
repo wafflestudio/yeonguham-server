@@ -9,8 +9,8 @@ if (
     or SETTINGS_MODULE == "yeonguham.settings"
     or SETTINGS_MODULE == "yeonguham.settings.dev"
 ):
-    from dev import *
+    from .dev import *
 
 # 환경 변수의 값이 "yeonguham.settings.local"이면 local.py 불러옴
 elif SETTINGS_MODULE == "yeonguham.settings.local":
-    from local import *
+    from .local import *
