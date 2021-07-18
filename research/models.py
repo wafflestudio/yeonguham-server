@@ -1,11 +1,8 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime
-from django.utils import timezone
 from django.contrib.auth.models import User
-from ..accounts.models import Profile
-
-# Create your models here.
+from accounts.models import Profile
 
 
 class Research(models.Model):
@@ -32,7 +29,7 @@ class Research(models.Model):
         User, null=True, related_name="marked_research", through="Mark"
     )
     researchees = models.ManyToManyField(
-        "Profile", through="ResearcheeResearch", null=True
+        Profile, through="ResearcheeResearch", null=True
     )
     STATUS_CHOICES = (
         ("EXP", "EXPIRED"),
