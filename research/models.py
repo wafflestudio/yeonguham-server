@@ -62,8 +62,8 @@ class Research(models.Model):
 class ResearcheeResearch(models.Model):
     researchee = models.ForeignKey(Profile, on_delete=models.CASCADE, null = True)
     research = models.ForeignKey(Research, on_delete=models.CASCADE, null= True)
-
-
+    
+    
 class Notice(models.Model):
     research = models.ForeignKey(
         Research, on_delete=models.CASCADE, related_name="notices", null=True

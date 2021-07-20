@@ -77,7 +77,7 @@ class ResearchList(APIView):
                 tag = tag_serializer.save()
 
             with transaction.atomic():
-                if TagResearch.objects.filter(research=research, tag = tag).exist():
+                if TagResearch.objects.filter(research=research, tag=tag).exist():
                     return Response(
                         {"error": "중복된 tag입니다."},
                         status=status.HTTP_409_CONFLICT,
