@@ -128,7 +128,7 @@ class NewResearchSerializer(serializers.ModelSerializer):
         ]
 
 
-class RecommendResearchSerialzier(serializers.ModelSerializer):
+class RecommendResearchSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
@@ -162,7 +162,7 @@ class SimpleResearchSerializer(serializers.ModelSerializer):
         ]
 
 
-class NoticeCreateSerialzier(serializers.ModelSerializer):
+class NoticeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
         fields = ["id", "research", "title", "body", "image"]
