@@ -23,7 +23,7 @@ class Research(models.Model):
         Profile, on_delete=models.CASCADE, related_name="researches"
     )
     tags = models.ManyToManyField(
-        "Tag", null=True, related_name="researches", through="TagResearch"
+        Tag, null=True, related_name="researches", through="TagResearch"
     )
     mark_users = models.ManyToManyField(
         User, null=True, related_name="marked_research", through="Mark"
@@ -39,7 +39,7 @@ class Research(models.Model):
     )
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     location = models.TextField()
-    images = ArrayField(models.ImageField(), size=4)
+    images = ArrayField(models.ImageField(), size=4, blank= True, null= True)
 
     class Meta:
         ordering = ["-hit"]
@@ -60,8 +60,8 @@ class Research(models.Model):
 
 
 class ResearcheeResearch(models.Model):
-    researchee = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    research = models.ForeignKey(Research, on_delete=models.CASCADE)
+    researchee = models.ForeignKey(Profile, on_delete=models.CASCADE, null = True)
+    research = models.ForeignKey(Research, on_delete=models.CASCADE, null= True)
 
 
 class Notice(models.Model):
