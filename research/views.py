@@ -37,7 +37,7 @@ from datetime import datetime
 # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#filter
 
 
-class ReserachList(APIView):
+class ResearchList(APIView):
     def get(self, request):
         researches = Research.filter(recruit_start__gt=datetime.now())
         hot_researches = researches[:24]
@@ -77,6 +77,11 @@ class ReserachList(APIView):
                 tag = tag_serializer.save()
 
             with transaction.atomic():
+                if TagResearch.objects.filter(research=research, tag=tag).exist():
+                    return Response(
+                        {"error": "중복된 tag입니다."},
+                        status=status.HTTP_409_CONFLICT,
+                    )
                 TagResearch.objects.create(research=research, tag=tag)
         return Response(
             ResearchCreateSerializer(research).data, status=status.HTTP_201_CREATED
