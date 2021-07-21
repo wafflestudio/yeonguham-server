@@ -35,9 +35,8 @@ class SimpleResearchCreateSerializer(serializers.ModelSerializer):
             "researcher",
         ]
 
-    # def create(self, research):
-    #     researcher = self.context["request"].user.profile
-    #     return Research.objects.create(**research, reseacher=researcher)
+    def create(self, research):
+        return Research.objects.create(**research)
 
 
 class ResearchCreateSerializer(SimpleResearchCreateSerializer):
