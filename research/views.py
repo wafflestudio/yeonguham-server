@@ -38,7 +38,7 @@ from datetime import datetime
 
 class ResearchList(APIView):
     def get(self, request):
-        researches = Research.filter(recruit_end__gt=datetime.now())        
+        researches = Research.filter(recruit_end__gt=datetime.now())
         hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
         new_researches = researches.order_by("-create_date")[:24]
@@ -96,6 +96,8 @@ class ResearchDetail(APIView):
 
     def get(self, request, rid):
         research = self.get_object(rid)
+        research.hit += 1
+        research.save()
         serializer = ResearchViewSerializer(research)
         return Response(serializer.data)
 
