@@ -27,7 +27,7 @@ from .serializers import (
     AskDetailSerializer,
     AnswerSerializer,
 )
-from .pagination import HomePagination, ListPagination, NoticePagination, AskPagination
+from .pagination import ListPagination, NoticePagination, AskPagination
 from rest_framework.views import APIView, status, viewsets
 from rest_framework import action
 from rest_framework.response import Response
@@ -38,13 +38,10 @@ from datetime import datetime
 
 class ResearchList(APIView):
     def get(self, request):
-        researches = Research.filter(recruit_start__gt=datetime.now())
-        page = HomePagination()
-        hot_researches = page.paginate_queryset(researches, request)
+        researches = Research.filter(recruit_end__gt=datetime.now())        
+        hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
-        new_researches = page.paginate_queryset(
-            researches.order_by("-create_date"), request
-        )
+        new_researches = researches.order_by("-create_date")[:24]
         new_serializer = NewResearchSerializer(new_researches, many=True)
         context = {
             "hot_research": hot_serializer.data,
