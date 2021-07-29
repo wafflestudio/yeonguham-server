@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import User
 
@@ -31,3 +31,32 @@ class Profile(models.Model):
     )
     access_token = models.CharField(max_length=50)
     refresh_token = models.CharField(max_length=50)
+
+
+# Custom manager for proxy user model
+class CustomUserManager(models.Manager):
+    @transaction.atomic
+    def create_user_and_profile(
+        self, username, email, access_token, refresh_token, interests
+    ):
+        user = User(username=username, email=email)
+        user.set_unusable_password()
+        user.save()
+
+        profile = Profile(
+            user=user,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            interests=interests,
+        )
+        profile.save()
+
+        return user
+
+
+# Proxy user model
+class ProxyUser(User):
+    objects = CustomUserManager()
+
+    class Meta:
+        proxy = True
