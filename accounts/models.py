@@ -1,10 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-# Create your models here.
 
 
 class Profile(models.Model):
@@ -33,12 +29,5 @@ class Profile(models.Model):
     interests = ArrayField(
         models.CharField(max_length=14, choices=TAG_CHOICES), default=list, size=17
     )
-
-    @receiver(post_save, sender=User)
-    def create_user_researchee(sender, instance, created, **kwargs):
-        if created:
-            Profile.objects.create(user=instance)
-
-    @receiver(post_save, sender=User)
-    def save_user_researchee(sender, instance, **kwargs):
-        instance.researchee.save()
+    access_token = models.CharField(max_length=50)
+    refresh_token = models.CharField(max_length=50)
