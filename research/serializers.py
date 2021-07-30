@@ -35,9 +35,8 @@ class SimpleResearchCreateSerializer(serializers.ModelSerializer):
             "researcher",
         ]
 
-    # def create(self, research):
-    #     researcher = self.context["request"].user.profile
-    #     return Research.objects.create(**research, reseacher=researcher)
+    def create(self, research):
+        return Research.objects.create(**research)
 
 
 class ResearchCreateSerializer(SimpleResearchCreateSerializer):
@@ -128,7 +127,7 @@ class NewResearchSerializer(serializers.ModelSerializer):
         ]
 
 
-class RecommendResearchSerialzier(serializers.ModelSerializer):
+class RecommendResearchSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
@@ -162,7 +161,7 @@ class SimpleResearchSerializer(serializers.ModelSerializer):
         ]
 
 
-class NoticeCreateSerialzier(serializers.ModelSerializer):
+class NoticeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
         fields = ["id", "research", "title", "body", "image"]
