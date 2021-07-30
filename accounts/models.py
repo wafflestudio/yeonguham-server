@@ -1,10 +1,6 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-# Create your models here.
 
 
 class Profile(models.Model):
@@ -33,12 +29,34 @@ class Profile(models.Model):
     interests = ArrayField(
         models.CharField(max_length=14, choices=TAG_CHOICES), default=list, size=17
     )
+    access_token = models.CharField(max_length=50)
+    refresh_token = models.CharField(max_length=50)
 
-    @receiver(post_save, sender=User)
-    def create_user_researchee(sender, instance, created, **kwargs):
-        if created:
-            Profile.objects.create(user=instance)
 
-    @receiver(post_save, sender=User)
-    def save_user_researchee(sender, instance, **kwargs):
-        instance.researchee.save()
+# Custom manager for proxy user model
+class CustomUserManager(models.Manager):
+    @transaction.atomic
+    def create_user_and_profile(
+        self, username, email, access_token, refresh_token, interests
+    ):
+        user = User(username=username, email=email)
+        user.set_unusable_password()
+        user.save()
+
+        profile = Profile(
+            user=user,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            interests=interests,
+        )
+        profile.save()
+
+        return user
+
+
+# Proxy user model
+class ProxyUser(User):
+    objects = CustomUserManager()
+
+    class Meta:
+        proxy = True

@@ -41,7 +41,7 @@ class ResearchList(APIView):
         researches = Research.filter(recruit_end__gt=datetime.now())
         hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
-        new_researches = researches.order_by("-create_date")[:24]
+        new_researches = researches.order_by("-create_date")
         new_serializer = NewResearchSerializer(new_researches, many=True)
         context = {
             "hot_research": hot_serializer.data,
