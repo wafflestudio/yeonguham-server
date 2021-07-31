@@ -39,7 +39,7 @@ class Research(models.Model):
     )
     status = models.CharField(max_length=3, choices=STATUS_CHOICES)
     location = models.TextField()
-    images = ArrayField(models.ImageField(), size=4, blank= True, null= True)
+    images = ArrayField(models.ImageField(), size=4, blank=True, null=True)
 
     class Meta:
         ordering = ["-hit"]
@@ -60,10 +60,10 @@ class Research(models.Model):
 
 
 class ResearcheeResearch(models.Model):
-    researchee = models.ForeignKey(Profile, on_delete=models.CASCADE, null = True)
-    research = models.ForeignKey(Research, on_delete=models.CASCADE, null= True)
-    
-    
+    researchee = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    research = models.ForeignKey(Research, on_delete=models.CASCADE, null=True)
+
+
 class Notice(models.Model):
     research = models.ForeignKey(
         Research, on_delete=models.CASCADE, related_name="notices", null=True
