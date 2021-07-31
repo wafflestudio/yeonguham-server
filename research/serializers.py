@@ -45,7 +45,7 @@ class ResearchCreateSerializer(SimpleResearchCreateSerializer):
 
     class Meta:
         model = Research
-        fields = SimpleResearchCreateSerializer.Meta.fields + ("reward", "tags")
+        fields = SimpleResearchCreateSerializer.Meta.fields + ["reward", "tags"]
 
     def get_reward(self, research):
         reward = research.reward
