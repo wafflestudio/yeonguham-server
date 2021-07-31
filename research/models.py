@@ -23,7 +23,7 @@ class Research(models.Model):
         Profile, on_delete=models.CASCADE, related_name="researches"
     )
     tags = models.ManyToManyField(
-        Tag, null=True, related_name="researches", through="TagResearch"
+        "Tag", null=True, related_name="researches", through="TagResearch"
     )
     mark_users = models.ManyToManyField(
         User, null=True, related_name="marked_research", through="Mark"
