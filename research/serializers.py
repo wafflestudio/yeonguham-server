@@ -15,6 +15,13 @@ class RewardSerializer(serializers.ModelSerializer):
 
 
 class SimpleResearchCreateSerializer(serializers.ModelSerializer):
+    create_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    update_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    recruit_start = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    recruit_end = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    research_start = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    research_end = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
     class Meta:
         model = Research
         fields = [
@@ -45,15 +52,15 @@ class ResearchCreateSerializer(SimpleResearchCreateSerializer):
 
     class Meta:
         model = Research
-        fields = SimpleResearchCreateSerializer.Meta.fields + ("reward", "tags")
+        fields = SimpleResearchCreateSerializer.Meta.fields + ["reward", "tags"]
 
     def get_reward(self, research):
         reward = research.reward
-        return RewardSerializer(reward, context=self.context).data
+        return RewardSerializer(reward).data
 
     def get_tags(self, research):
         tags = research.tags
-        return TagSerializer(tags, context=self.context, many=True).data
+        return TagSerializer(tags, many=True).data
 
     # def get_researcher(self,research):
     #     return ProfileSerializer()
@@ -91,7 +98,7 @@ class ResearchViewSerializer(serializers.ModelSerializer):
         return TagSerializer(research.tags.all(), many=True)
 
     def get_reward(self, research):
-        return RewardSerializer(research.reward)
+        return RewardSerializer(research.reward).save()
 
 
 class HotResearchSerializer(serializers.ModelSerializer):

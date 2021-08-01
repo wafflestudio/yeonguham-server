@@ -28,8 +28,8 @@ from .serializers import (
     AnswerSerializer,
 )
 from .pagination import ListPagination, NoticePagination, AskPagination
-from rest_framework.views import APIView, status, viewsets
-from rest_framework import action
+from rest_framework.views import APIView, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import Http404
 from django.db import transaction
@@ -38,7 +38,7 @@ from datetime import datetime
 
 class ResearchList(APIView):
     def get(self, request):
-        researches = Research.filter(recruit_end__gt=datetime.now())
+        researches = Research.objects.filter(recruit_end__gt=datetime.now())
         hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
         new_researches = researches.order_by("-create_date")
@@ -53,9 +53,7 @@ class ResearchList(APIView):
         data = request.data.copy()
         reward = data.pop("reward")
         tags = data.pop("tags")
-        serializer = SimpleResearchCreateSerializer(
-            data=data, context=self.get_serializer_context()
-        )
+        serializer = SimpleResearchCreateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
@@ -148,6 +146,11 @@ class ResearchDetail(APIView):
             ResearchCreateSerializer(research).data, status=status.HTTP_200_OK
         )
 
+    def mark(self, request, rid):
+        research = self.get_object(rid)
+        Mark.objects.create(user=request.user.profile, research=research)
+        return Response(status=status.HTTP_200_OK)
+
     def delete(self, request, rid):
         research = self.get_object(rid)
         research.delete()
@@ -163,9 +166,7 @@ class NoticeList(APIView):
         return Response(serializer.data)
 
     def post(self, request, rid):
-        serializer = NoticeCreateSerializer(
-            data=request.data, context=self.get_serializer_context()
-        )
+        serializer = NoticeCreateSerializer(data=request.data)
         research = Research.objects.get(id=rid)
         if serializer.is_valid():
             serializer.save(research=research)
@@ -201,7 +202,7 @@ class AskList(APIView):
 
     def post(self, request, rid):
         serializer = AskCreateSerializer(
-            request.data, context=self.get_serializer_context()
+            request.data  # , context=self.get_serializer_context()
         )
         research = Research.objects.get(id=rid)
         asker = request.user.profile
@@ -280,7 +281,7 @@ class RecommendList(APIView):
         interests = request.user.researchee.interests
         sort = request.query_params.get("sort")
         page = ListPagination()
-        recommendations = Research.obejects.filter(
+        recommendations = Research.objects.filter(
             tags__tag_name__in=interests
         ).order_by(sort)
         recommendations = page.paginate_queryset(recommendations, request)

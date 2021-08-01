@@ -6,7 +6,7 @@ from accounts.models import Profile
 
 
 class Research(models.Model):
-    subject = models.CharField(max_length=20, blank=False, null=True)
+    subject = models.CharField(max_length=50, blank=False, null=True)
     create_date = models.DateTimeField(auto_now=False, auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True, auto_now_add=False)
     recruit_start = models.DateTimeField(auto_now=False, auto_now_add=False)
@@ -23,10 +23,10 @@ class Research(models.Model):
         Profile, on_delete=models.CASCADE, related_name="researches"
     )
     tags = models.ManyToManyField(
-        Tag, null=True, related_name="researches", through="TagResearch"
+        "Tag", null=True, related_name="researches", through="TagResearch"
     )
     mark_users = models.ManyToManyField(
-        User, null=True, related_name="marked_research", through="Mark"
+        Profile, null=True, related_name="marked_researches", through="Mark"
     )
     researchees = models.ManyToManyField(
         Profile, through="ResearcheeResearch", null=True
@@ -112,7 +112,7 @@ class Tag(models.Model):
 
 
 class Mark(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     research = models.ForeignKey(Research, on_delete=models.CASCADE)
 
 
