@@ -64,8 +64,8 @@ class ResearchList(APIView):
                 reward_type=reward.get("reward_type"),
                 amount=reward.get("amount"),
             )
-        for field_tag in tags:
-            tag_name = field_tag.get("tag_name")
+        for tag_name in tags:
+            field_tag = {'tag_name':tag_name}
             try:
                 tag = Tag.objects.get(tag_name=tag_name)
             except Tag.DoesNotExist:
