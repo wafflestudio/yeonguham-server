@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    'rest_framework',
     "accounts.apps.AccountsConfig",
     "research.apps.ResearchConfig",
 ]
@@ -65,6 +66,10 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+REST_FRAMEWORK = {
+    'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

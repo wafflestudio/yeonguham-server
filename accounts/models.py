@@ -29,8 +29,8 @@ class Profile(models.Model):
     interests = ArrayField(
         models.CharField(max_length=14, choices=TAG_CHOICES), default=list, size=17
     )
-    access_token = models.CharField(max_length=50)
-    refresh_token = models.CharField(max_length=50)
+    access_token = models.CharField(max_length=50, null=True)
+    refresh_token = models.CharField(max_length=50, null=True)
 
 
 # Custom manager for proxy user model
