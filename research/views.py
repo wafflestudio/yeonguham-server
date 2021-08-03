@@ -41,7 +41,7 @@ class ResearchList(APIView):
         researches = Research.objects.filter(recruit_end__gt=datetime.now())
         hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
-        new_researches = researches.order_by("-create_date")
+        new_researches = researches.order_by("-create_date")[:24]
         new_serializer = NewResearchSerializer(new_researches, many=True)
         context = {
             "hot_research": hot_serializer.data,
@@ -53,7 +53,7 @@ class ResearchList(APIView):
         data = request.data.copy()
         reward = data.pop("reward")
         tags = data.pop("tags")
-        serializer = SimpleResearchCreateSerializer(data=data)
+        serializer = SimpleResearchCreateSerializer(data=data, files=request.FILES)
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
@@ -65,7 +65,7 @@ class ResearchList(APIView):
                 amount=reward.get("amount"),
             )
         for tag_name in tags:
-            field_tag = {'tag_name':tag_name}
+            field_tag = {"tag_name": tag_name}
             try:
                 tag = Tag.objects.get(tag_name=tag_name)
             except Tag.DoesNotExist:
