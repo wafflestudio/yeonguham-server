@@ -59,16 +59,16 @@ class ResearchCreateSerializer(SimpleResearchCreateSerializer):
         return RewardSerializer(reward).data
 
     def get_tags(self, research):
-        tags = research.tags
+        tags = research.tags.all()
         return TagSerializer(tags, many=True).data
-
-    # def get_researcher(self,research):
-    #     return ProfileSerializer()
 
 
 class ResearchViewSerializer(serializers.ModelSerializer):
-    tags = serializers.SerializerMethodField()
+    tags = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="tag_name"
+    )
     reward = serializers.SerializerMethodField()
+    current_number = serializers.SerializerMethodField()
 
     class Meta:
         model = Research
@@ -94,15 +94,18 @@ class ResearchViewSerializer(serializers.ModelSerializer):
             "images",
         ]
 
-    def get_tags(self, research):
-        return TagSerializer(research.tags.all(), many=True)
-
     def get_reward(self, research):
         return RewardSerializer(research.reward).save()
 
+    def get_current_number(self, research):
+        return research.researchees.count()
+
 
 class HotResearchSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="tag_name"
+    )
+    current_number = serializers.SerializerMethodField()
 
     class Meta:
         model = Research
@@ -114,12 +117,17 @@ class HotResearchSerializer(serializers.ModelSerializer):
             "current_number",
             "images",
             "tags",
-            "status",
         ]
+
+    def get_current_number(self, research):
+        return research.researchees.count()
 
 
 class NewResearchSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="tag_name"
+    )
+    current_number = serializers.SerializerMethodField()
 
     class Meta:
         model = Research
@@ -133,9 +141,15 @@ class NewResearchSerializer(serializers.ModelSerializer):
             "tags",
         ]
 
+    def get_current_number(self, research):
+        return research.researchees.count()
+
 
 class RecommendResearchSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="tag_name"
+    )
+    current_number = serializers.SerializerMethodField()
 
     class Meta:
         model = Research
@@ -147,13 +161,18 @@ class RecommendResearchSerializer(serializers.ModelSerializer):
             "capacity",
             "current_number",
             "hit",
-            "status",
             "tags",
         ]
 
+    def get_current_number(self, research):
+        return research.researchees.count()
+
 
 class SimpleResearchSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="tag_name"
+    )
+    current_number = serializers.SerializerMethodField()
 
     class Meta:
         model = Research
@@ -166,6 +185,9 @@ class SimpleResearchSerializer(serializers.ModelSerializer):
             "current_number",
             "tags",
         ]
+
+    def get_current_number(self, research):
+        return research.researchees.count()
 
 
 class NoticeCreateSerializer(serializers.ModelSerializer):

@@ -17,7 +17,6 @@ class Research(models.Model):
     detail = models.TextField()
     requirement = models.TextField()
     capacity = models.IntegerField()
-    current_number = models.IntegerField(default=0)
     hit = models.IntegerField(default=0)
     researcher = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name="researches", null=True
