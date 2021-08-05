@@ -36,7 +36,14 @@ class SearchViewSet(viewsets.GenericViewSet):
         time_range = request.query_params.get("time_range")
         page = ListPagination()
 
-        search_result = Research.objects.filter(subject__iexact=keyword)
+        search_result = Research.objects.annotate(
+            marked=Count("mark_users__id")
+        ).order_by("marked")
+
+        if keyword:
+            search_result = Research.objects.filter(subject__iexact=keyword)
+        if tags:
+            Research.objects.filter(tags__tag_name__in=tags)
         if sort:
             search_result = search_result.order_by(sort)
         if pay:
