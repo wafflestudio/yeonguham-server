@@ -28,16 +28,29 @@ from .serializers import (
     AnswerSerializer,
 )
 from .pagination import ListPagination, NoticePagination, AskPagination
+from rest_framework import viewsets
 from rest_framework.views import APIView, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from django.http import Http404
 from django.db import transaction
 from datetime import datetime
 
 
-class ResearchList(APIView):
-    def get(self, request):
+class ResearchViewSet(viewsets.GenericViewSet):
+    queryset = Research.objects.filter(recruit_end__gt=datetime.now())
+
+    def get_permissions(self):
+        return (AllowAny(),)
+
+    def get_object(self, rid):
+        try:
+            return Research.objects.get(pk=rid)
+        except Research.DoesNotExist:
+            raise Http404
+
+    def list(self, request):
         researches = Research.objects.filter(recruit_end__gt=datetime.now())
         hot_researches = researches[:24]
         hot_serializer = HotResearchSerializer(hot_researches, many=True)
@@ -49,7 +62,7 @@ class ResearchList(APIView):
         }
         return Response(context)
 
-    def post(self, request):
+    def create(self, request):
         data = request.data.copy()
         reward = data.pop("reward")
         tags = data.pop("tags")
@@ -84,22 +97,15 @@ class ResearchList(APIView):
             ResearchCreateSerializer(research).data, status=status.HTTP_201_CREATED
         )
 
-
-class ResearchDetail(APIView):
-    def get_object(self, rid):
-        try:
-            return Research.objects.get(pk=rid)
-        except Research.DoesNotExist:
-            raise Http404
-
-    def get(self, request, rid):
+    def retrieve(self, request, rid):
         research = self.get_object(rid)
         research.hit += 1
         research.save()
         serializer = ResearchViewSerializer(research)
         return Response(serializer.data)
 
-    def post(self, request, rid):
+    @action(detail=True, methods=["POST"])
+    def participate(self, request, rid):
         research = self.get_object(rid)
         researchee = request.user.researchee
         try:
@@ -111,7 +117,7 @@ class ResearchDetail(APIView):
             return Response(status=status.HTTP_201_CREATED)
         return Response({"error": "이미 참여하고 있는 연구입니다."}, status=status.HTTP_409_CONFLICT)
 
-    def put(self, request, rid):
+    def update(self, request, rid):
         research = self.get_object(rid)
         data = request.data.copy()
         updated_reward = data.pop("reward")
@@ -128,8 +134,7 @@ class ResearchDetail(APIView):
             reward = serializer.save()
 
         old_tags = TagResearch.objects.filter(research=research)
-        for updated_tag in updated_tags:
-            tag_name = updated_tag.get("tag_name")
+        for tag_name in updated_tags:
             try:
                 tag = Tag.objects.get(tag_name=tag_name)
             except Tag.DoesNotExist:
@@ -146,26 +151,40 @@ class ResearchDetail(APIView):
             ResearchCreateSerializer(research).data, status=status.HTTP_200_OK
         )
 
+    @action(detail=True, methods=["PATCH"])
     def mark(self, request, rid):
         research = self.get_object(rid)
-        Mark.objects.create(user=request.user.profile, research=research)
+        try:
+            mark = Mark.objects.get(user=request.user.profile, research=research)
+            mark.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Mark.DoesNotExist:
+            Mark.objects.create(user=request.user.profile, research=research)
         return Response(status=status.HTTP_200_OK)
 
-    def delete(self, request, rid):
+    def destroy(self, request, rid):
         research = self.get_object(rid)
         research.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class NoticeList(APIView):
-    def get(self, request, rid):
-        notices = Notice.objects.filter(research__id=rid)
+class NoticeViewSet(viewsets.GenericViewSet):
+    queryset = Notice.objects.all()
+
+    def get_object(self, nid):
+        try:
+            return Notice.objects.get(pk=nid)
+        except Research.DoesNotExist:
+            raise Http404
+
+    def list(self, request, rid):
+        notices = queryset.filter(research__id=rid)
         page = NoticePagination()
         notices = page.paginate_queryset(notices, request)
         serializer = NoticeSimpleSerializer(notices, many=True)
         return Response(serializer.data)
 
-    def post(self, request, rid):
+    def create(self, request, rid):
         serializer = NoticeCreateSerializer(data=request.data)
         research = Research.objects.get(id=rid)
         if serializer.is_valid():
@@ -173,34 +192,34 @@ class NoticeList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class NoticeDetail(APIView):
-    def get_object(self, nid):
-        try:
-            return Notice.objects.get(pk=nid)
-        except Research.DoesNotExist:
-            raise Http404
-
-    def get(self, request, rid, nid):
+    def retrieve(self, request, rid, nid):
         notice = self.get_object(nid)
         serializer = NoticeDetailSerializer(notice)
         return Response(serializer.data)
 
-    def delete(self, request, rid, nid):
+    def destroy(self, request, rid, nid):
         notice = self.get_object(nid)
         notice.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class AskList(APIView):
-    def get(self, request, rid):
+class AskViewSet(viewsets.GenericViewSet):
+    queryset = Ask.objects.all()
+
+    def get_object(self, aid):
+        try:
+            return Ask.objects.get(pk=aid)
+        except Research.DoesNotExist:
+            raise Http404
+
+    def list(self, request, rid):
         asks = Ask.objects.filter(research__id=rid)
         page = AskPagination()
         asks = page.paginate_queryset(asks, request)
         serializer = AskSimpleSerializer(asks, many=True)
         return Response(serializer.data)
 
-    def post(self, request, rid):
+    def create(self, request, rid):
         serializer = AskCreateSerializer(
             request.data  # , context=self.get_serializer_context()
         )
@@ -211,69 +230,32 @@ class AskList(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class AskDetail(APIView):
-    def get_object(self, aid):
-        try:
-            return Ask.objects.get(pk=aid)
-        except Research.DoesNotExist:
-            raise Http404
-
-    def get(self, request, rid, aid):
+    def retrieve(self, request, rid, aid):
         ask = self.get_object(aid)
         serializer = AskDetailSerializer(ask)
-        return Response(serializer.data)
+        try:
+            answer_set = Answer.objects.filter(ask=ask)
+            answer = AnswerSerializer(answer_set, many=True).data
+        except Answer.DoesNotExist:
+            answer = {}
+        context = {
+            "ask": serializer.data,
+            "answer": answer,
+        }
+        return Response(context)
 
-    def delete(self, request, rid, aid):
+    @action(detail == True, methods=["POST"])
+    def answer(self, request, rid, aid):
+        ask = self.get_object(aid)
+        serializer = AnswerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        answer = serializer.save(ask=ask)
+        return Response(answer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, rid, aid):
         ask = Ask.objects.get(pk=aid)
         ask.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class SearchList(APIView):
-    def get(self, request):
-        keyword = request.query_params.get("query")
-        sort = request.query_params.get("sort")
-        pay = request.query_params.get("pay")
-        time_range = request.query_params.get("time_range")
-        page = ListPagination()
-
-        search_result = Research.objects.filter(subject__iexact=keyword)
-        if sort:
-            search_result = search_result.order_by(sort)
-        if pay:
-            search_result = search_result.filter(reward__amount__gte=pay)
-        if time_range:
-            start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
-            end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
-            search_result = search_result.filter(research_start__range=(start, end))
-            search_result = search_result.filter(research_end__range=(start, end))
-        search_result = page.paginate_queryset(search_result, request)
-        serializer = SimpleResearchSerializer(search_result, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class FieldList(APIView):
-    def get(self, request):
-        tags = request.query_params.get("tags")
-        sort = request.query_params.get("sort")
-        pay = request.query_params.get("pay")
-        time_range = request.query_params.get("time_range")
-        page = ListPagination()
-
-        filter_result = Research.objects.filter(tags__tag_name__in=tags)
-
-        if sort:
-            filter_result = filter_result.order_by(sort)
-        if pay:
-            filter_result = filter_result.filter(reward__amount__gte=pay)
-        if time_range:
-            start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
-            end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
-            filter_result = filter_result.filter(research_start__range=(start, end))
-            filter_result = filter_result.filter(research_end__range=(start, end))
-        filter_result = page.paginate_queryset(filter_result, request)
-        serializer = SimpleResearchSerializer(filter_result, many=True)
 
 
 class RecommendList(APIView):

@@ -21,6 +21,7 @@ class SimpleResearchCreateSerializer(serializers.ModelSerializer):
     recruit_end = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     research_start = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     research_end = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    images = serializers.ImageField(use_url=True)
 
     class Meta:
         model = Research
@@ -226,7 +227,6 @@ class AskDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ask
         fields = ["content", "private", "asker"]
-
 
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
