@@ -41,9 +41,9 @@ class SearchViewSet(viewsets.GenericViewSet):
         ).order_by("marked")
 
         if keyword:
-            search_result = Research.objects.filter(subject__iexact=keyword)
+            search_result = search_result.filter(subject__iexact=keyword)
         if tags:
-            Research.objects.filter(tags__tag_name__in=tags)
+            search_result = search_result.filter(tags__tag_name__in=tags)
         if sort:
             search_result = search_result.order_by(sort)
         if pay:
