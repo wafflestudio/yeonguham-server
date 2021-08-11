@@ -67,7 +67,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
         data = request.data.copy()
         reward = data.pop("reward")
         tags = data.pop("tags")
-        serializer = SimpleResearchCreateSerializer(data=data)
+        serializer = SimpleResearchCreateSerializer(data=data, files=request.FILES)
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
