@@ -26,6 +26,7 @@ from .serializers import (
     AskSimpleSerializer,
     AskDetailSerializer,
     AnswerSerializer,
+    AnswerSimpleSerializer
 )
 from .pagination import ListPagination, NoticePagination, AskPagination
 from rest_framework import viewsets
@@ -235,7 +236,7 @@ class AskViewSet(viewsets.GenericViewSet):
         serializer = AskDetailSerializer(ask)
         try:
             answer_set = Answer.objects.filter(ask=ask)
-            answer = AnswerSerializer(answer_set, many=True).data
+            answer = AnswerSimpleSerializer(answer_set, many=True).data
         except Answer.DoesNotExist:
             answer = {}
         context = {
@@ -244,18 +245,18 @@ class AskViewSet(viewsets.GenericViewSet):
         }
         return Response(context)
 
-    @action(detail == True, methods=["POST"])
-    def answer(self, request, rid, aid):
-        ask = self.get_object(aid)
-        serializer = AnswerSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        answer = serializer.save(ask=ask)
-        return Response(answer.data, status=status.HTTP_201_CREATED)
+        @action(detail == True, methods=["POST"])
+        def answer(self, request, rid, aid):
+            ask = self.get_object(aid)
+            serializer = AnswerSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            answer = serializer.save(ask=ask)
+            return Response(answer.data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, rid, aid):
-        ask = Ask.objects.get(pk=aid)
-        ask.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        def destroy(self, request, rid, aid):
+            ask = Ask.objects.get(pk=aid)
+            ask.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class RecommendList(APIView):

@@ -23,7 +23,7 @@ import datetime
 
 
 class SearchViewSet(viewsets.GenericViewSet):
-    queryset = Research.objects.annotate(count=Count("mark_users_set"))
+    queryset = Research.objects.annotate(count=Count("mark_users"))
 
     def get_permissions(self):
         return (AllowAny(),)
