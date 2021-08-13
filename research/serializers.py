@@ -21,7 +21,7 @@ class SimpleResearchCreateSerializer(serializers.ModelSerializer):
     recruit_end = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     research_start = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     research_end = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    images = serializers.ImageField(use_url=True, required= False)
+    images = serializers.ImageField(use_url=True, required=False)
 
     class Meta:
         model = Research
@@ -96,7 +96,7 @@ class ResearchViewSerializer(serializers.ModelSerializer):
         ]
 
     def get_reward(self, research):
-        return RewardSerializer(research.reward).save()
+        return RewardSerializer(research.reward).data
 
     def get_current_number(self, research):
         return research.researchees.count()
@@ -228,10 +228,12 @@ class AskDetailSerializer(serializers.ModelSerializer):
         model = Ask
         fields = ["content", "private", "asker"]
 
+
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = ["id", "ask", "content"]
+
 
 class AnswerSimpleSerializer(serializers.ModelSerializer):
     class Meta:
