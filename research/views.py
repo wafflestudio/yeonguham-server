@@ -48,6 +48,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
     def get_serializer_class(self):
         if self.action == "create":
             return ResearchCreateSerializer
+        return ResearchViewSerializer
 
     def get_object(self, rid):
         try:
@@ -212,7 +213,7 @@ class NoticeViewSet(viewsets.GenericViewSet):
 class AskViewSet(viewsets.GenericViewSet):
     queryset = Ask.objects.all()
 
-    def get_serialize_class(self):
+    def get_serializer_class(self):
         return AskSimpleSerializer
 
     def get_object(self, aid):
