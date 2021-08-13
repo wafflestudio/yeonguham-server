@@ -45,7 +45,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
     def get_permissions(self):
         return (AllowAny(),)
 
-    def get_serialzier_class(self):
+    def get_serializer_class(self):
         if self.action == "create":
             return ResearchCreateSerializer
 
@@ -174,7 +174,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
 class NoticeViewSet(viewsets.GenericViewSet):
     queryset = Notice.objects.all()
 
-    def get_serializer(self):
+    def get_serializer_class(self):
         return NoticeSimpleSerializer
 
     def get_object(self, nid):
@@ -212,7 +212,7 @@ class NoticeViewSet(viewsets.GenericViewSet):
 class AskViewSet(viewsets.GenericViewSet):
     queryset = Ask.objects.all()
 
-    def get_serializer(self):
+    def get_serialize_class(self):
         return AskSimpleSerializer
 
     def get_object(self, aid):
