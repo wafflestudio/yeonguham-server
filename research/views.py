@@ -46,7 +46,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
         return (AllowAny(),)
 
     def get_serializer_class(self):
-        if self.action == "create":
+        if self.action in ("create", "update"):
             return ResearchCreateSerializer
         return ResearchViewSerializer
 
@@ -99,7 +99,9 @@ class ResearchViewSet(viewsets.GenericViewSet):
                         status=status.HTTP_409_CONFLICT,
                     )
                 TagResearch.objects.create(research=research, tag=tag)
-        return Response(get_serializer(research).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ResearchCreateSerializer(research).data, status=status.HTTP_201_CREATED
+        )
 
     def retrieve(self, request, pk=None):
         research = self.get_object(pk)
@@ -128,7 +130,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
         updated_tags = data.pop("tags")
 
         try:
-            reward = Reward.objects.filter(research=research)
+            reward = Reward.objects.get(research=research)
             serializer = RewardSerializer(reward, data=updated_reward)
             serializer.is_valid(raise_exception=True)
             reward = serializer.save()
@@ -151,6 +153,9 @@ class ResearchViewSet(viewsets.GenericViewSet):
         for old_tag in old_tags:
             old_tag.delete()
 
+        serializer = ResearchCreateSerializer(research, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(
             ResearchCreateSerializer(research).data, status=status.HTTP_200_OK
         )
