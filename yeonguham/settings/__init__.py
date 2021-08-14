@@ -7,10 +7,10 @@ SETTINGS_MODULE = os.environ.get("DJANGO_SETTINGS_MODULE")
 if (
     not SETTINGS_MODULE
     or SETTINGS_MODULE == "yeonguham.settings"
-    or SETTINGS_MODULE == "yeonguham.settings.local"
+    or SETTINGS_MODULE == "yeonguham.settings.dev"
 ):
-    from .local import *
+    from .dev import *
 
 # 환경 변수의 값이 "yeonguham.settings.local"이면 local.py 불러옴
-elif SETTINGS_MODULE == "yeonguham.settings.dev":
-    from .dev import *
+elif SETTINGS_MODULE == "yeonguham.settings.local":
+    from .local import *
