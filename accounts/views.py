@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth import authenticate
-from django.views.decorators.csrf import csrf_exempt, action
+from django.views.decorators import action
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
