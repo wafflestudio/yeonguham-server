@@ -1,10 +1,13 @@
-from django.urls import path
+from django.urls import path, include 
 from rest_framework.urlpatterns import format_suffix_patterns
-from accounts import views
+from rest_framework.routers import SimpleRouter
+from accounts.views import UserViewSet
 
+app_name = "accounts"
 
-urlpatterns = [
-    path("users/", views.UserCreateView.as_view()),
-]
+router = SimpleRouter()
+router.register("", UserViewSet)
 
-urlpatterns = format_suffix_patterns(urlpatterns)
+urlpatterns = []
+
+urlpatterns += router.urls
