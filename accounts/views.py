@@ -13,7 +13,6 @@ from accounts.models import Profile
 
 class UserViewSet(viewsets.GenericViewSet):
     queryset = Profile.objects.all()
-    permission_classes = (IsAuthenticated(),)
 
     def get_serialzier_class(self):
         return UserCreateSerializer
@@ -23,4 +22,4 @@ class UserViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         login(request, user)
-        return Response(data=user.pk, status=HTTP_201_CREATED)        
+        return Response(data=user.pk, status=status.HTTP_201_CREATED)        
