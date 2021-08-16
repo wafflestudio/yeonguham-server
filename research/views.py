@@ -73,7 +73,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
-            research = serializer.save(researhcer=request.user.profile)
+            research = serializer.save(researcher=request.user.profile)
 
             Reward.objects.create(
                 research=research,
