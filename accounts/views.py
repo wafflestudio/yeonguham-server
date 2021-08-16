@@ -13,7 +13,6 @@ from accounts.models import Profile
 
 class UserViewSet(viewsets.GenericViewSet):
     queryset = Profile.objects.all()
-    permission_classes = (IsAuthenticated(),)
 
     def get_serializer_class(self):
         return UserCreateSerializer
