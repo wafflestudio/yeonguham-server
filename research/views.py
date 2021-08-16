@@ -42,9 +42,6 @@ from datetime import datetime
 class ResearchViewSet(viewsets.GenericViewSet):
     queryset = Research.objects.filter(recruit_end__gt=datetime.now())
 
-    def get_permissions(self):
-        return (AllowAny(),)
-
     def get_serializer_class(self):
         if self.action in ("create", "update"):
             return ResearchCreateSerializer
@@ -179,10 +176,6 @@ class ResearchViewSet(viewsets.GenericViewSet):
 
 class NoticeViewSet(viewsets.GenericViewSet):
     queryset = Notice.objects.all()
-
-    def get_permissions(self):
-        return (IsAuthenticated(),)
-
     def get_serializer_class(self):
         return NoticeSimpleSerializer
 
@@ -220,9 +213,6 @@ class NoticeViewSet(viewsets.GenericViewSet):
 
 class AskViewSet(viewsets.GenericViewSet):
     queryset = Ask.objects.all()
-    def get_permissions(self):
-        return (IsAuthenticated(),)
-
     def get_serializer_class(self):
         return AskSimpleSerializer
 
