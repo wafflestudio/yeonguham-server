@@ -23,10 +23,8 @@ import datetime
 
 
 class SearchViewSet(viewsets.GenericViewSet):
-    queryset = Research.objects.annotate(count=Count("mark_users"))
-
-    def get_permissions(self):
-        return (AllowAny(),)
+    queryset = Research.objects.annotate(count=Count("mark_users")).order_by("count")
+    serializer_class = SimpleResearchSerializer
 
     def list(self, request):
         keyword = request.query_params.get("query")
@@ -54,31 +52,6 @@ class SearchViewSet(viewsets.GenericViewSet):
             search_result = search_result.filter(research_start__range=(start, end))
             search_result = search_result.filter(research_end__range=(start, end))
         search_result = page.paginate_queryset(search_result, request)
-        serializer = SimpleResearchSerializer(search_result, many=True)
+        serializer = self.get_serializer(search_result, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# class FieldList(APIView):
-#     def get(self, request):
-#         tags = request.query_params.get("tags")
-#         sort = request.query_params.get("sort")
-#         pay = request.query_params.get("pay")
-#         time_range = request.query_params.get("time_range")
-#         page = ListPagination()
-
-#         filter_result = Research.objects.filter(tags__tag_name__in=tags)
-
-#         if sort:
-#             filter_result = filter_result.order_by(sort)
-#         if pay:
-#             filter_result = filter_result.filter(reward__amount__gte=pay)
-#         if time_range:
-#             start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
-#             end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
-#             filter_result = filter_result.filter(research_start__range=(start, end))
-#             filter_result = filter_result.filter(research_end__range=(start, end))
-#         filter_result = page.paginate_queryset(filter_result, request)
-#         serializer = SimpleResearchSerializer(filter_result, many=True)
-
-#         return Response(serializer.data, status=status.HTTP_200_OK)
