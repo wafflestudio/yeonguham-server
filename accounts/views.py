@@ -1,4 +1,5 @@
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 
@@ -7,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from accounts.serializers import UserCreateSerializer
+from accounts.models import Profile
 
 
 class UserViewSet(viewsets.GenericViewSet):
