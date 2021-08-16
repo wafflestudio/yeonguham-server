@@ -115,10 +115,12 @@ class ResearchViewSet(viewsets.GenericViewSet):
             already = ResearcheeResearch.objects(
                 research=research, researchee=researchee
             )
+            already.delete()
         except ResearcheeResearch.DoesNotExist:
             ResearcheeResearch.objects.create(research=research, researchee=researchee)
             return Response(status=status.HTTP_201_CREATED)
-        return Response({"error": "이미 참여하고 있는 연구입니다."}, status=status.HTTP_409_CONFLICT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
     def update(self, request, pk=None):
         research = self.get_object(pk)
