@@ -33,7 +33,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import Http404
 from django.db import transaction
 from datetime import datetime
@@ -180,6 +180,9 @@ class ResearchViewSet(viewsets.GenericViewSet):
 class NoticeViewSet(viewsets.GenericViewSet):
     queryset = Notice.objects.all()
 
+    def get_permissions(self):
+        return (IsAuthenticated(),)
+
     def get_serializer_class(self):
         return NoticeSimpleSerializer
 
@@ -217,6 +220,8 @@ class NoticeViewSet(viewsets.GenericViewSet):
 
 class AskViewSet(viewsets.GenericViewSet):
     queryset = Ask.objects.all()
+    def get_permissions(self):
+        return (IsAuthenticated(),)
 
     def get_serializer_class(self):
         return AskSimpleSerializer
