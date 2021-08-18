@@ -4,6 +4,7 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
+from accounts.models import Profile
 from research.models import (
     Research,
     Tag,
@@ -17,7 +18,7 @@ from research.models import (
 )
 from research.serializers import SimpleResearchSerializer
 from research.pagination import ListPagination
-import datetime
+from datetime import datetime
 
 # Create your views here.
 
@@ -35,22 +36,32 @@ class SearchViewSet(viewsets.GenericViewSet):
         page = ListPagination()
 
         search_result = Research.objects.annotate(
-            marked=Count("mark_users__id")
+            marked=Count("mark_users")
         ).order_by("marked")
 
+        q = Q()
+
         if keyword:
-            search_result = search_result.filter(subject__iexact=keyword)
+            q.add(
+                Q(subject__icontains=keyword) | Q(researcher__name__icontains=keyword),
+                q.AND,
+            )
         if tags:
-            search_result = search_result.filter(tags__tag_name__in=tags)
+            q.add(Q(tags__tag_name__in=tags), q.AND)
+        if pay:
+            q.add(Q(reward__amount__gte=pay), q.AND)
+        if time_range:
+            start = datetime.striptime(time_range[0], "%Y-%m-%d %H:%M:%S")
+            end = datetime.striptime(time_range[1], "%Y-%m-%d %H:%M:%S")
+            q.add(
+                Q(research_start__range=(start, end))
+                & Q(research_end__range=(start, end)),
+                q.AND,
+            )
+
+        search_result.filter(q).distinct()
         if sort:
             search_result = search_result.order_by(sort)
-        if pay:
-            search_result = search_result.filter(reward__amount__gte=pay)
-        if time_range:
-            start = datetime(time_range[0], time_range[1], time_range[2], 0, 0)
-            end = datetime(time_range[3], time_range[4], time_range[5], 0, 0)
-            search_result = search_result.filter(research_start__range=(start, end))
-            search_result = search_result.filter(research_end__range=(start, end))
         search_result = page.paginate_queryset(search_result, request)
         serializer = self.get_serializer(search_result, many=True)
 

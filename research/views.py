@@ -36,6 +36,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import Http404
 from django.db import transaction
+from django.db.models import Q
 from datetime import datetime
 
 
@@ -121,7 +122,6 @@ class ResearchViewSet(viewsets.GenericViewSet):
             return Response(status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
     def update(self, request, pk=None):
         research = self.get_object(pk)
         data = request.data.copy()
@@ -178,6 +178,7 @@ class ResearchViewSet(viewsets.GenericViewSet):
 
 class NoticeViewSet(viewsets.GenericViewSet):
     queryset = Notice.objects.all()
+
     def get_serializer_class(self):
         return NoticeSimpleSerializer
 
@@ -215,6 +216,7 @@ class NoticeViewSet(viewsets.GenericViewSet):
 
 class AskViewSet(viewsets.GenericViewSet):
     queryset = Ask.objects.all()
+
     def get_serializer_class(self):
         return AskSimpleSerializer
 
@@ -274,10 +276,12 @@ class RecommendList(APIView):
     def get(self, request):
         interests = request.user.researchee.interests
         sort = request.query_params.get("sort")
+        recommendations = recommendations = Research.objects.filter(
+            Q(tags__tag_name__in=interests) & Q(recruit_end__gte=datetime.now())
+        )
+        if sort:
+            recommendations = recommendations.order_by(sort)
         page = ListPagination()
-        recommendations = Research.objects.filter(
-            tags__tag_name__in=interests
-        ).order_by(sort)
         recommendations = page.paginate_queryset(recommendations, request)
         serializer = RecommendResearchSerializer(recommendations, many=True)
         return Response(serializer.data)
